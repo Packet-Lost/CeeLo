@@ -22,28 +22,34 @@ class Player:
     def setscore(self, score):
         self.__score = score
 
+    def resetscore(self):
+        self.__score = 0
+
     def getscore(self):
         return self.__score
 
     def getscoredisplay(self):
         return roll_display[self.__score]
 
+    def gettheround(self):
+        return self.__theround
+
     def settheround(self, theround):
         self.__theround = theround
 
-    def gettheround(self):
-        return self.__theround
+    def incrtheround(self):
+        self.__theround = self.gettheround() + 1
+
+    def starttheround(self):
+        self.resetscore()
+        self.incrtheround()
 
     __repr__ = __str__
 
 
 
 def StartGame():
-    rollers = []
-
-    for player in players:
-        newroller = Player(player)
-        rollers.append(newroller)
+    rollers = [Player(player) for player in players]
 
     while True:
         if len(rollers) > 1:
@@ -52,15 +58,13 @@ def StartGame():
             EndGame(rollers)
 
 
-
-
-
 def StartRound(rollers):
-    for roller in rollers:
-        roller.setscore(0)
-        roller.settheround(roller.gettheround() + 1)
+    #this resets all rollers score to zero and increments the round number
+    list(map(lambda x: x.starttheround(), rollers))
     currenthighscore = 0
 
+    
+    #the round begins, players are prompted to input roll scores and are shown the score to beat
     for roller in rollers:
         ClearTheScreen()
         currentrollscore = 0
@@ -72,26 +76,20 @@ def StartRound(rollers):
         if currentrollscore > currenthighscore:
             currenthighscore = currentrollscore
 
+    #determine the winning rollers of the round
     rollers = TrimLosingRollers(rollers)
 
     return rollers
 
 
 def FindHighScore(rollers):
-    scores = []
-
-    for roller in rollers:
-        scores.append(roller.getscore())
-
-    f = lambda a, b: a if (a > b) else b
-    highscore = reduce(f, scores)
-
+    scores = [roller.getscore() for roller in rollers]
+    highscore = reduce(lambda a, b: a if (a > b) else b, scores)
     return highscore
 
 
 def TrimLosingRollers(rollers):
-    trimhighscore = FindHighScore(rollers)
-    trimmedrollers = [roller for roller in rollers if roller.getscore() >= trimhighscore]
+    trimmedrollers = [roller for roller in rollers if roller.getscore() >= FindHighScore(rollers)]
     return trimmedrollers
 
 
@@ -132,8 +130,6 @@ def GetRoundDisplay(roundindex):
     else:
         prettyround = round_display[roundindex]
     return prettyround
-
-
 
 
 StartGame()
